@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rooms - HostelHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <style>
+    .room-filters { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .room-filters select, .room-filters input { width: auto; min-width: 180px; }
+    .room-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .room-card { background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; transition: all var(--transition-fast); }
+    .room-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .room-image { height: 160px; background: var(--bg-tertiary); position: relative; display: flex; align-items: center; justify-content: center; }
+    .room-image i { font-size: 3rem; color: var(--text-muted); }
+    .room-status { position: absolute; top: 12px; right: 12px; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+    .room-status.available { background: rgba(16,185,129,0.9); color: white; }
+    .room-status.occupied { background: rgba(79,70,229,0.9); color: white; }
+    .room-status.maintenance { background: rgba(245,158,11,0.9); color: white; }
+    .room-info { padding: 20px; }
+    .room-number { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; color: var(--text-primary); }
+    .room-type { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px; }
+    .room-details { display: flex; gap: 16px; margin-bottom: 16px; }
+    .room-detail { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text-muted); }
+    .room-price { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
+    .room-price span { font-size: 0.8rem; font-weight: 400; color: var(--text-secondary); }
+    .room-actions { display: flex; gap: 8px; margin-top: 16px; }
+    .view-toggle { display: flex; gap: 4px; background: var(--bg-tertiary); padding: 4px; border-radius: var(--radius-md); }
+    .view-toggle button { padding: 8px 12px; border-radius: var(--radius-sm); background: transparent; border: none; color: var(--text-muted); cursor: pointer; }
+    .view-toggle button.active { background: var(--bg-card); color: var(--primary); box-shadow: var(--shadow-sm); }
+    .room-list-view { display: none; }
+    .room-list-view.active { display: block; }
+    .room-grid-view { display: none; }
+    .room-grid-view.active { display: grid; }
+  </style>
+</head>
+<body>
+  <div class="mobile-overlay" id="mobile-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><div class="sidebar-logo"><i class="fas fa-building"></i></div><span class="sidebar-brand">HostelHub</span></div>
+    <nav class="sidebar-nav"><ul>
+      <li><a href="dashboard.html"><i class="fas fa-th-large"></i><span>Dashboard</span></a></li>
+
+      <li><a href="students.html"><i class="fas fa-users"></i><span>Students</span></a></li>
+
+      <li><a href="notices.html"><i class="fas fa-bullhorn"></i><span>Notices</span></a></li>
+      <li><a href="settings.html"><i class="fas fa-cog"></i><span>Settings</span></a></li>
+    </ul></nav>
+    <div class="sidebar-footer"><button class="sidebar-toggle" id="sidebar-toggle"><i class="fas fa-chevron-left"></i><span>Collapse</span></button></div>
+  </aside>
+  <main class="main-content">
+    <header class="top-header">
+      <button class="header-btn" id="mobile-menu-toggle"><i class="fas fa-bars"></i></button>
+      <div class="header-search"><i class="fas fa-search"></i><input type="text" placeholder="Search rooms..." data-search="rooms"></div>
+      <div class="header-actions">
+        <button class="header-btn" id="theme-toggle"><i class="fas fa-moon"></i></button>
+        <button class="header-btn" style="position:relative"><i class="fas fa-bell"></i><span class="badge-dot" id="notification-badge"></span></button>
+        <div class="dropdown">
+          <div class="header-profile dropdown-trigger">
+            <img src="https://ui-avatars.com/api/?name=Admin+User&background=4f46e5&color=fff" alt="Profile">
+            <div class="header-profile-info">
+              <div class="header-profile-name">Admin User</div>
+              <div class="header-profile-role">Administrator</div>
+            </div>
+            <i class="fas fa-chevron-down" style="font-size:0.75rem;color:var(--text-muted)"></i>
+          </div>
+          <div class="dropdown-menu">
+            <a href="settings.html" class="dropdown-item"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html" class="dropdown-item"><i class="fas fa-cog"></i> Settings</a>
+            <div class="dropdown-divider"></div>
+            <a href="#" class="dropdown-item" onclick="logout();return false"><i class="fas fa-sign-out-alt"></i> Logout</a>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="page-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Room Management</h1>
+          <p class="page-subtitle">Manage your hostel rooms, availability, and pricing.</p>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center">
+          <div class="view-toggle">
+            <button class="active" onclick="switchView('grid')"><i class="fas fa-th"></i></button>
+            <button onclick="switchView('list')"><i class="fas fa-list"></i></button>
+          </div>
+          <button class="btn btn-primary" onclick="openModal('add-room-modal')"><i class="fas fa-plus"></i> Add Room</button>
+        </div>
+      </div>
+      <div class="room-filters">
+        <select class="form-select" onchange="filterRooms(this.value,'floor')"><option value="">All Floors</option><option value="1">Floor 1</option><option value="2">Floor 2</option><option value="3">Floor 3</option></select>
+        <select class="form-select" onchange="filterRooms(this.value,'type')"><option value="">All Types</option><option value="single">Single</option><option value="double">Double</option><option value="triple">Triple</option><option value="suite">Suite</option></select>
+        <select class="form-select" onchange="filterRooms(this.value,'status')"><option value="">All Status</option><option value="available">Available</option><option value="occupied">Occupied</option><option value="maintenance">Maintenance</option></select>
+        <input type="text" class="form-input" placeholder="Search by room number..." style="min-width:240px" oninput="searchRooms(this.value)">
+      </div>
+      <div class="room-grid-view active" id="room-grid-view"></div>
+      <div class="room-list-view" id="room-list-view">
+        <div class="card">
+          <div class="table-container">
+            <table class="data-table">
+              <thead><tr><th>Room</th><th>Type</th><th>Floor</th><th>Price</th><th>Status</th><th>Occupant</th><th>Actions</th></tr></thead>
+              <tbody id="room-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Add Room Modal -->
+  <div class="modal-overlay" id="add-room-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Add New Room</h3>
+        <button class="modal-close" onclick="closeModal('add-room-modal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="add-room-form">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="form-group"><label class="form-label">Room Number</label><input type="text" class="form-input" placeholder="e.g. 101" required></div>
+            <div class="form-group"><label class="form-label">Room Type</label><select class="form-select" required><option value="">Select Type</option><option value="single">Single</option><option value="double">Double</option><option value="triple">Triple</option><option value="suite">Suite</option></select></div>
+            <div class="form-group"><label class="form-label">Floor</label><select class="form-select" required><option value="">Select Floor</option><option value="1">Floor 1</option><option value="2">Floor 2</option><option value="3">Floor 3</option><option value="4">Floor 4</option></select></div>
+            <div class="form-group"><label class="form-label">Price / Month</label><input type="number" class="form-input" placeholder="450" required></div>
+            <div class="form-group" style="grid-column:span 2"><label class="form-label">Amenities</label><input type="text" class="form-input" placeholder="AC, WiFi, TV, Attached Bathroom"></div>
+            <div class="form-group" style="grid-column:span 2"><label class="form-label">Description</label><textarea class="form-textarea" placeholder="Room description..."></textarea></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('add-room-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveRoom()"><i class="fas fa-save"></i> Save Room</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script>
+    if (localStorage.getItem('isLoggedIn') !== 'true') { window.location.href = 'login.html'; }
+
+    const roomsData = [
+      { id: 1, number: '101', type: 'single', floor: 1, price: 450, status: 'occupied', occupant: 'John Doe', amenities: ['AC', 'WiFi'] },
+      { id: 2, number: '102', type: 'double', floor: 1, price: 350, status: 'available', occupant: null, amenities: ['AC', 'WiFi', 'TV'] },
+      { id: 3, number: '103', type: 'single', floor: 1, price: 450, status: 'occupied', occupant: 'Sarah Johnson', amenities: ['AC', 'WiFi'] },
+      { id: 4, number: '104', type: 'triple', floor: 1, price: 300, status: 'maintenance', occupant: null, amenities: ['WiFi'] },
+      { id: 5, number: '201', type: 'suite', floor: 2, price: 650, status: 'occupied', occupant: 'Michael Chen', amenities: ['AC', 'WiFi', 'TV', 'Kitchen'] },
+      { id: 6, number: '202', type: 'double', floor: 2, price: 350, status: 'available', occupant: null, amenities: ['AC', 'WiFi'] },
+      { id: 7, number: '203', type: 'single', floor: 2, price: 450, status: 'occupied', occupant: 'Emily Davis', amenities: ['AC', 'WiFi'] },
+      { id: 8, number: '204', type: 'double', floor: 2, price: 350, status: 'available', occupant: null, amenities: ['WiFi', 'TV'] },
+      { id: 9, number: '301', type: 'single', floor: 3, price: 450, status: 'occupied', occupant: 'David Wilson', amenities: ['AC', 'WiFi'] },
+      { id: 10, number: '302', type: 'triple', floor: 3, price: 300, status: 'available', occupant: null, amenities: ['WiFi'] },
+      { id: 11, number: '303', type: 'double', floor: 3, price: 350, status: 'occupied', occupant: 'Lisa Brown', amenities: ['AC', 'WiFi', 'TV'] },
+      { id: 12, number: '304', type: 'suite', floor: 3, price: 650, status: 'available', occupant: null, amenities: ['AC', 'WiFi', 'TV', 'Kitchen'] }
+    ];
+
+    function renderRooms(data = roomsData) {
+      const grid = document.getElementById('room-grid-view');
+      const tbody = document.getElementById('room-table-body');
+      grid.innerHTML = ''; tbody.innerHTML = '';
+
+      data.forEach(room => {
+        const card = document.createElement('div');
+        card.className = 'room-card';
+        card.setAttribute('data-search-target', 'rooms');
+        card.innerHTML = `
+          <div class="room-image"><i class="fas fa-bed"></i><span class="room-status ${room.status}">${room.status}</span></div>
+          <div class="room-info">
+            <div class="room-number">Room ${room.number}</div>
+            <div class="room-type">${room.type.charAt(0).toUpperCase() + room.type.slice(1)} Room &middot; Floor ${room.floor}</div>
+            <div class="room-details">
+              <span class="room-detail"><i class="fas fa-user"></i> ${room.type === 'single' ? 1 : room.type === 'double' ? 2 : room.type === 'triple' ? 3 : 4}</span>
+              <span class="room-detail"><i class="fas fa-wifi"></i> ${room.amenities.join(', ')}</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div class="room-price">$${room.price}<span>/month</span></div>
+              ${room.occupant ? `<div style="font-size:0.8rem;color:var(--text-secondary)"><i class="fas fa-user"></i> ${room.occupant}</div>` : ''}
+            </div>
+            <div class="room-actions">
+              <button class="btn btn-sm btn-secondary" style="flex:1"><i class="fas fa-edit"></i> Edit</button>
+              ${room.status === 'available' ? `<button class="btn btn-sm btn-primary" style="flex:1"><i class="fas fa-user-plus"></i> Assign</button>` : `<button class="btn btn-sm btn-danger" style="flex:1"><i class="fas fa-user-minus"></i> Vacate</button>`}
+            </div>
+          </div>`;
+        grid.appendChild(card);
+
+        const tr = document.createElement('tr');
+        tr.setAttribute('data-search-target', 'rooms');
+        tr.innerHTML = `<td><strong>Room ${room.number}</strong></td><td>${room.type.charAt(0).toUpperCase() + room.type.slice(1)}</td><td>Floor ${room.floor}</td><td>$${room.price}/mo</td><td><span class="badge badge-${room.status === 'available' ? 'success' : room.status === 'occupied' ? 'primary' : 'warning'}">${room.status}</span></td><td>${room.occupant || '-'}</td><td><button class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-primary"><i class="fas fa-eye"></i></button></td></tr>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function switchView(view) {
+      document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      document.getElementById('room-grid-view').classList.toggle('active', view === 'grid');
+      document.getElementById('room-list-view').classList.toggle('active', view === 'list');
+    }
+
+    function filterRooms(value, type) {
+      let filtered = roomsData;
+      if (type === 'floor' && value) filtered = filtered.filter(r => r.floor == parseInt(value));
+      if (type === 'type' && value) filtered = filtered.filter(r => r.type === value);
+      if (type === 'status' && value) filtered = filtered.filter(r => r.status === value);
+      renderRooms(filtered);
+    }
+
+    function searchRooms(query) {
+      const filtered = roomsData.filter(r => r.number.includes(query) || r.type.includes(query.toLowerCase()) || (r.occupant && r.occupant.toLowerCase().includes(query.toLowerCase())));
+      renderRooms(filtered);
+    }
+
+    function saveRoom() {
+      showToast('Success', 'New room added successfully', 'success');
+      closeModal('add-room-modal');
+    }
+
+    renderRooms();
+  </script>
+</body>
+</html>
+

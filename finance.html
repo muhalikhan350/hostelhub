@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance Settings - HostelHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <style>
+    .fee-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .fee-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; text-align: center; transition: all var(--transition-fast); }
+    .fee-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .fee-card .fee-icon { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 1.2rem; }
+    .fee-card .fee-label { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px; }
+    .fee-card .fee-value { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+    .charge-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: 10px; }
+    .charge-row .charge-info { display: flex; align-items: center; gap: 12px; }
+    .charge-row .charge-icon { width: 36px; height: 36px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; background: var(--bg-card); color: var(--primary); font-size: 0.9rem; }
+    .student-fee-editor { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width:768px){ .student-fee-editor { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="mobile-overlay" id="mobile-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><div class="sidebar-logo"><i class="fas fa-building"></i></div><span class="sidebar-brand">HostelHub</span></div>
+    <nav class="sidebar-nav"><ul>
+      <li><a href="dashboard.html"><i class="fas fa-th-large"></i><span>Dashboard</span></a></li>
+      <li><a href="rooms.html"><i class="fas fa-bed"></i><span>Rooms</span></a></li>
+      <li><a href="students.html"><i class="fas fa-users"></i><span>Students</span></a></li>
+      <li><a href="payments.html"><i class="fas fa-credit-card"></i><span>Payments</span></a></li>
+      <li><a href="finance.html" class="active"><i class="fas fa-dollar-sign"></i><span>Finance</span></a></li>
+      <li><a href="complaints.html"><i class="fas fa-wrench"></i><span>Complaints</span></a></li>
+      <li><a href="notices.html"><i class="fas fa-bullhorn"></i><span>Notices</span></a></li>
+      <li><a href="settings.html"><i class="fas fa-cog"></i><span>Settings</span></a></li>
+    </ul></nav>
+    <div class="sidebar-footer"><button class="sidebar-toggle" id="sidebar-toggle"><i class="fas fa-chevron-left"></i><span>Collapse</span></button></div>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-header">
+      <button class="header-btn" id="mobile-menu-toggle"><i class="fas fa-bars"></i></button>
+      <div class="header-search"><i class="fas fa-search"></i><input type="text" placeholder="Search..."></div>
+      <div class="header-actions">
+        <button class="header-btn" id="theme-toggle"><i class="fas fa-moon"></i></button>
+        <button class="header-btn" style="position:relative"><i class="fas fa-bell"></i><span class="badge-dot" id="notification-badge"></span></button>
+        <div class="dropdown">
+          <div class="header-profile dropdown-trigger"><img src="https://ui-avatars.com/api/?name=Admin+User&background=1e3a5f&color=fff" alt="Profile"><div class="header-profile-info"><div class="header-profile-name">Admin User</div><div class="header-profile-role">Administrator</div><i class="fas fa-chevron-down" style="font-size:0.75rem;color:var(--text-muted)"></i></div></div>
+          <div class="dropdown-menu"><a href="settings.html" class="dropdown-item"><i class="fas fa-user"></i> Profile</a><a href="settings.html" class="dropdown-item"><i class="fas fa-cog"></i> Settings</a><div class="dropdown-divider"></div><a href="#" class="dropdown-item" onclick="logout();return false"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <div><h1 class="page-title">Finance Settings</h1><p class="page-subtitle">Configure fee structures, charges, and student billing.</p></div>
+        <button class="btn btn-primary" onclick="saveAllFinance()"><i class="fas fa-save"></i> Save All Changes</button>
+      </div>
+
+      <!-- Variable Fee Structure -->
+      <div class="card" style="margin-bottom:24px">
+        <div class="card-header"><h3 class="card-title"><i class="fas fa-tags" style="color:var(--primary);margin-right:8px"></i>Variable Fee Structure</h3></div>
+        <div class="card-body">
+          <div class="fee-grid" id="fee-grid"></div>
+          <button class="btn btn-secondary" onclick="openModal('add-fee-modal')"><i class="fas fa-plus"></i> Add Fee Category</button>
+        </div>
+      </div>
+
+      <!-- Additional Charges -->
+      <div class="card" style="margin-bottom:24px">
+        <div class="card-header"><h3 class="card-title"><i class="fas fa-receipt" style="color:var(--primary);margin-right:8px"></i>Additional Charges Manager</h3></div>
+        <div class="card-body">
+          <div id="charges-list"></div>
+          <button class="btn btn-secondary" style="margin-top:12px" onclick="openModal('add-charge-modal')"><i class="fas fa-plus"></i> Add Charge</button>
+        </div>
+      </div>
+
+      <!-- Student Fee Editor -->
+      <div class="card">
+        <div class="card-header"><h3 class="card-title"><i class="fas fa-user-edit" style="color:var(--primary);margin-right:8px"></i>Edit Student Fee (Scholarships / Discounts)</h3></div>
+        <div class="card-body">
+          <div class="student-fee-editor">
+            <div class="form-group">
+              <label class="form-label">Select Student</label>
+              <select class="form-select" id="fee-student-select" onchange="loadStudentFee()"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Base Room Fee</label>
+              <input type="number" class="form-input" id="fee-base" readonly>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Scholarship / Discount ($)</label>
+              <input type="number" class="form-input" id="fee-discount" placeholder="0" oninput="calcTotal()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Additional Charges ($)</label>
+              <input type="number" class="form-input" id="fee-additional" placeholder="0" oninput="calcTotal()">
+            </div>
+            <div class="form-group" style="grid-column:span 2">
+              <label class="form-label">Final Fee Per Month</label>
+              <div style="font-size:2rem;font-weight:800;color:var(--primary)" id="fee-final">$0</div>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="saveStudentFee()"><i class="fas fa-save"></i> Save Student Fee</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Add Fee Modal -->
+  <div class="modal-overlay" id="add-fee-modal">
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header"><h3 class="modal-title">Add Fee Category</h3><button class="modal-close" onclick="closeModal('add-fee-modal')"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <div class="form-group"><label class="form-label">Category Name</label><input type="text" class="form-input" id="new-fee-name" placeholder="e.g. 2-Bed AC"></div>
+        <div class="form-group"><label class="form-label">Monthly Fee ($)</label><input type="number" class="form-input" id="new-fee-amount" placeholder="e.g. 200"></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('add-fee-modal')">Cancel</button><button class="btn btn-primary" onclick="addFeeCategory()">Add</button></div>
+    </div>
+  </div>
+
+  <!-- Add Charge Modal -->
+  <div class="modal-overlay" id="add-charge-modal">
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header"><h3 class="modal-title">Add Charge</h3><button class="modal-close" onclick="closeModal('add-charge-modal')"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <div class="form-group"><label class="form-label">Charge Name</label><input type="text" class="form-input" id="new-charge-name" placeholder="e.g. Late Payment Fine"></div>
+        <div class="form-group"><label class="form-label">Amount ($)</label><input type="number" class="form-input" id="new-charge-amount" placeholder="e.g. 25"></div>
+        <div class="form-group"><label class="form-label">Type</label><select class="form-select" id="new-charge-type"><option value="one-time">One-time</option><option value="recurring">Recurring</option></select></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('add-charge-modal')">Cancel</button><button class="btn btn-primary" onclick="addCharge()">Add</button></div>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script>
+    if (localStorage.getItem('isLoggedIn') !== 'true') window.location.href = 'login.html';
+
+    let financeData = JSON.parse(localStorage.getItem('financeData')) || {
+      fees: [
+        { id: 1, name: '1-Bed AC', amount: 300 },
+        { id: 2, name: '1-Bed Non-AC', amount: 200 },
+        { id: 3, name: '2-Bed AC', amount: 180 },
+        { id: 4, name: '2-Bed Non-AC', amount: 120 },
+        { id: 5, name: '3-Bed AC', amount: 140 },
+        { id: 6, name: '3-Bed Non-AC', amount: 100 },
+        { id: 7, name: '4-Bed AC', amount: 110 },
+        { id: 8, name: '4-Bed Non-AC', amount: 80 }
+      ],
+      charges: [
+        { id: 1, name: 'Security Deposit', amount: 500, type: 'one-time', icon: 'fa-shield-alt' },
+        { id: 2, name: 'Late Payment Fine', amount: 25, type: 'recurring', icon: 'fa-clock' },
+        { id: 3, name: 'Electricity Unit Charges', amount: 0.15, type: 'recurring', icon: 'fa-bolt' },
+        { id: 4, name: 'Mess Fees', amount: 150, type: 'recurring', icon: 'fa-utensils' }
+      ],
+      studentFees: {}
+    };
+
+    const students = JSON.parse(localStorage.getItem('studentsData')) || [
+      { id: 1, name: 'John Doe', roomFee: 200 },
+      { id: 2, name: 'Sarah Johnson', roomFee: 180 },
+      { id: 3, name: 'Michael Chen', roomFee: 120 }
+    ];
+
+    function renderFees() {
+      const grid = document.getElementById('fee-grid');
+      grid.innerHTML = financeData.fees.map(f => `
+        <div class="fee-card">
+          <div class="fee-icon" style="background:rgba(30,58,95,0.1);color:var(--primary)"><i class="fas fa-tag"></i></div>
+          <div class="fee-label">${f.name}</div>
+          <div class="fee-value">$${f.amount}<span style="font-size:0.8rem;color:var(--text-muted)">/mo</span></div>
+          <div style="margin-top:10px;display:flex;gap:6px;justify-content:center">
+            <button class="btn btn-sm btn-secondary" onclick="editFee(${f.id})"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-danger" onclick="deleteFee(${f.id})"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderCharges() {
+      const list = document.getElementById('charges-list');
+      list.innerHTML = financeData.charges.map(c => `
+        <div class="charge-row">
+          <div class="charge-info">
+            <div class="charge-icon"><i class="fas ${c.icon}"></i></div>
+            <div>
+              <div style="font-weight:600">${c.name}</div>
+              <div style="font-size:0.8rem;color:var(--text-muted)">${c.type === 'one-time' ? 'One-time' : 'Recurring'}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="font-weight:700;color:var(--primary)">$${c.amount}</div>
+            <button class="btn btn-sm btn-danger" onclick="deleteCharge(${c.id})"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function loadStudentSelect() {
+      const sel = document.getElementById('fee-student-select');
+      sel.innerHTML = '<option value="">Select Student</option>' + students.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    }
+
+    function loadStudentFee() {
+      const id = document.getElementById('fee-student-select').value;
+      if (!id) return;
+      const student = students.find(s => s.id == id);
+      const custom = financeData.studentFees[id] || {};
+      document.getElementById('fee-base').value = student.roomFee;
+      document.getElementById('fee-discount').value = custom.discount || 0;
+      document.getElementById('fee-additional').value = custom.additional || 0;
+      calcTotal();
+    }
+
+    function calcTotal() {
+      const base = parseFloat(document.getElementById('fee-base').value) || 0;
+      const discount = parseFloat(document.getElementById('fee-discount').value) || 0;
+      const additional = parseFloat(document.getElementById('fee-additional').value) || 0;
+      const total = Math.max(0, base - discount + additional);
+      document.getElementById('fee-final').textContent = '$' + total.toFixed(2);
+    }
+
+    function saveStudentFee() {
+      const id = document.getElementById('fee-student-select').value;
+      if (!id) { showToast('Error', 'Select a student first', 'danger'); return; }
+      financeData.studentFees[id] = {
+        discount: parseFloat(document.getElementById('fee-discount').value) || 0,
+        additional: parseFloat(document.getElementById('fee-additional').value) || 0
+      };
+      localStorage.setItem('financeData', JSON.stringify(financeData));
+      showToast('Saved', 'Student fee updated', 'success');
+    }
+
+    function addFeeCategory() {
+      const name = document.getElementById('new-fee-name').value;
+      const amount = parseFloat(document.getElementById('new-fee-amount').value);
+      if (!name || !amount) return;
+      financeData.fees.push({ id: Date.now(), name, amount });
+      localStorage.setItem('financeData', JSON.stringify(financeData));
+      closeModal('add-fee-modal');
+      renderFees();
+      showToast('Added', 'Fee category added', 'success');
+    }
+
+    function deleteFee(id) {
+      financeData.fees = financeData.fees.filter(f => f.id !== id);
+      localStorage.setItem('financeData', JSON.stringify(financeData));
+      renderFees();
+    }
+
+    function editFee(id) {
+      const f = financeData.fees.find(x => x.id === id);
+      const newAmount = prompt('Enter new amount for ' + f.name + ':', f.amount);
+      if (newAmount) { f.amount = parseFloat(newAmount); localStorage.setItem('financeData', JSON.stringify(financeData)); renderFees(); showToast('Updated', 'Fee updated', 'success'); }
+    }
+
+    function addCharge() {
+      const name = document.getElementById('new-charge-name').value;
+      const amount = parseFloat(document.getElementById('new-charge-amount').value);
+      const type = document.getElementById('new-charge-type').value;
+      if (!name || !amount) return;
+      financeData.charges.push({ id: Date.now(), name, amount, type, icon: 'fa-receipt' });
+      localStorage.setItem('financeData', JSON.stringify(financeData));
+      closeModal('add-charge-modal');
+      renderCharges();
+      showToast('Added', 'Charge added', 'success');
+    }
+
+    function deleteCharge(id) {
+      financeData.charges = financeData.charges.filter(c => c.id !== id);
+      localStorage.setItem('financeData', JSON.stringify(financeData));
+      renderCharges();
+    }
+
+    function saveAllFinance() {
+      localStorage.setItem('financeData', JSON.stringify(financeData));
+      showToast('Saved', 'All finance settings saved', 'success');
+    }
+
+    renderFees();
+    renderCharges();
+    loadStudentSelect();
+  </script>
+</body>
+</html>
+

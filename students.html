@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Students - HostelHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <style>
+    .student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .student-card { background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 24px; text-align: center; transition: all var(--transition-fast); }
+    .student-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .student-avatar { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 16px; object-fit: cover; background: var(--bg-tertiary); }
+    .student-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; color: var(--text-primary); }
+    .student-id { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; }
+    .student-room { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: var(--bg-tertiary); border-radius: 20px; font-size: 0.8rem; font-weight: 600; color: var(--primary); margin-bottom: 12px; }
+    .student-contact { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px; }
+    .student-status { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-top: 12px; }
+    .student-status.active { background: rgba(16,185,129,0.15); color: var(--success); }
+    .student-status.pending { background: rgba(245,158,11,0.15); color: var(--warning); }
+    .student-status.inactive { background: rgba(239,68,68,0.15); color: var(--danger); }
+    .student-actions { display: flex; gap: 8px; margin-top: 16px; }
+    .student-actions button { flex: 1; }
+    .attendance-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+    .attendance-present { background: rgba(16,185,129,0.15); color: var(--success); }
+    .attendance-absent { background: rgba(239,68,68,0.15); color: var(--danger); }
+    .attendance-leave { background: rgba(245,158,11,0.15); color: var(--warning); }
+    .gate-pass-btn { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+    .gate-pass-btn:hover { background: var(--primary-dark); }
+    .doc-upload { border: 2px dashed var(--border); border-radius: var(--radius-md); padding: 16px; text-align: center; cursor: pointer; transition: all var(--transition-fast); }
+    .doc-upload:hover { border-color: var(--primary); background: rgba(30,58,95,0.03); }
+  </style>
+</head>
+<body>
+  <div class="mobile-overlay" id="mobile-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><i class="fas fa-building"></i></div>
+      <span class="sidebar-brand">HostelHub</span>
+    </div>
+    <nav class="sidebar-nav">
+      <ul>
+        <li><a href="dashboard.html"><i class="fas fa-th-large"></i><span>Dashboard</span></a></li>
+        <li><a href="rooms.html"><i class="fas fa-bed"></i><span>Rooms</span></a></li>
+        <li><a href="students.html" class="active"><i class="fas fa-users"></i><span>Students</span></a></li>
+        <li><a href="payments.html"><i class="fas fa-credit-card"></i><span>Payments</span></a></li>
+        <li><a href="complaints.html"><i class="fas fa-wrench"></i><span>Complaints</span></a></li>
+        <li><a href="notices.html"><i class="fas fa-bullhorn"></i><span>Notices</span></a></li>
+        <li><a href="settings.html"><i class="fas fa-cog"></i><span>Settings</span></a></li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="sidebar-toggle" id="sidebar-toggle"><i class="fas fa-chevron-left"></i><span>Collapse</span></button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-header">
+      <button class="header-btn" id="mobile-menu-toggle"><i class="fas fa-bars"></i></button>
+      <div class="header-search"><i class="fas fa-search"></i><input type="text" placeholder="Search students..." data-search="students"></div>
+      <div class="header-actions">
+        <button class="header-btn" id="theme-toggle"><i class="fas fa-moon"></i></button>
+        <button class="header-btn" style="position:relative"><i class="fas fa-bell"></i><span class="badge-dot" id="notification-badge"></span></button>
+        <div class="dropdown">
+          <div class="header-profile dropdown-trigger">
+            <img src="https://ui-avatars.com/api/?name=Admin+User&background=4f46e5&color=fff" alt="Profile">
+            <div class="header-profile-info">
+              <div class="header-profile-name">Admin User</div>
+              <div class="header-profile-role">Administrator</div>
+            <i class="fas fa-chevron-down" style="font-size:0.75rem;color:var(--text-muted)"></i>
+          </div>
+          <div class="dropdown-menu">
+            <a href="settings.html" class="dropdown-item"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html" class="dropdown-item"><i class="fas fa-cog"></i> Settings</a>
+            <div class="dropdown-divider"></div>
+            <a href="#" class="dropdown-item" onclick="logout();return false"><i class="fas fa-sign-out-alt"></i> Logout</a>
+          </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Students</h1>
+          <p class="page-subtitle">Manage student records, room assignments, and payments.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('add-student-modal')"><i class="fas fa-plus"></i> Add Student</button>
+      </div>
+      <div class="room-filters" style="margin-bottom:20px">
+        <select class="form-select" onchange="filterStudents(this.value,'status')">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="pending">Pending</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <select class="form-select" onchange="filterStudents(this.value,'floor')">
+          <option value="">All Floors</option>
+          <option value="1">Floor 1</option>
+          <option value="2">Floor 2</option>
+          <option value="3">Floor 3</option>
+        </select>
+        <input type="text" class="form-input" placeholder="Search by name or ID..." style="min-width:240px" oninput="searchStudents(this.value)">
+      </div>
+      <div class="student-grid" id="student-grid"></div>
+  </main>
+
+  <!-- Add Student Modal -->
+  <div class="modal-overlay" id="add-student-modal">
+    <div class="modal" style="max-width:680px">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-user-plus"></i> Add New Student</h3>
+        <button class="modal-close" onclick="closeModal('add-student-modal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="add-student-form">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="form-group"><label class="form-label">Full Name <span style="color:var(--danger)">*</span></label><input type="text" class="form-input" id="stu-name" placeholder="John Doe" required></div>
+            <div class="form-group"><label class="form-label">Student ID <span style="color:var(--danger)">*</span></label><input type="text" class="form-input" id="stu-id" placeholder="STU-2024-001" required></div>
+            <div class="form-group"><label class="form-label">Email <span style="color:var(--danger)">*</span></label><input type="email" class="form-input" id="stu-email" placeholder="john@example.com" required></div>
+            <div class="form-group"><label class="form-label">Phone <span style="color:var(--danger)">*</span></label><input type="tel" class="form-input" id="stu-phone" placeholder="+1 234 567 890" required></div>
+            <div class="form-group"><label class="form-label">Room (Vacant Only)</label>
+              <select class="form-select" id="stu-room">
+                <option value="">Auto Assign</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Course/Program</label><input type="text" class="form-input" id="stu-course" placeholder="Computer Science"></div>
+          </div>
+          <div style="margin:20px 0 12px;font-weight:700;color:var(--primary);font-size:0.95rem;border-bottom:1px solid var(--border);padding-bottom:8px">Emergency Contacts</div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="form-group"><label class="form-label">Parent/Guardian Name</label><input type="text" class="form-input" id="stu-parent-name" placeholder="Jane Doe"></div>
+            <div class="form-group"><label class="form-label">Parent/Guardian Phone</label><input type="tel" class="form-input" id="stu-parent-phone" placeholder="+1 234 567 8900"></div>
+          </div>
+          <div style="margin:20px 0 12px;font-weight:700;color:var(--primary);font-size:0.95rem;border-bottom:1px solid var(--border);padding-bottom:8px">Documents</div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="doc-upload" onclick="alert('In production: File picker would open here')"><i class="fas fa-id-card" style="font-size:1.5rem;color:var(--primary);margin-bottom:8px"></i><div style="font-size:0.85rem;font-weight:600">Upload ID / CNIC</div><div style="font-size:0.75rem;color:var(--text-muted)">JPG, PNG, PDF</div></div>
+            <div class="doc-upload" onclick="alert('In production: File picker would open here')"><i class="fas fa-file-signature" style="font-size:1.5rem;color:var(--primary);margin-bottom:8px"></i><div style="font-size:0.85rem;font-weight:600">Hostel Agreement</div><div style="font-size:0.75rem;color:var(--text-muted)">Signed document</div></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('add-student-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveStudent()"><i class="fas fa-save"></i> Save Student</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gate Pass Modal -->
+  <div class="modal-overlay" id="gate-pass-modal">
+    <div class="modal" style="max-width:420px">
+      <div class="modal-header"><h3 class="modal-title"><i class="fas fa-passport"></i> Gate Pass</h3><button class="modal-close" onclick="closeModal('gate-pass-modal')"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body" id="gate-pass-body" style="text-align:center"></div>
+      <div class="modal-footer" style="justify-content:center"><button class="btn btn-primary" onclick="alert('Gate Pass printed!');closeModal('gate-pass-modal')"><i class="fas fa-print"></i> Print Pass</button></div>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script>
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+      window.location.href = 'login.html';
+    }
+
+    const studentsData = [
+      {id:1,name:'John Doe',studentId:'STU-2024-001',email:'john@example.com',phone:'+1 234 567 8901',room:'101',course:'Computer Science',status:'active',attendance:'present',avatar:'https://ui-avatars.com/api/?name=John+Doe&background=1e3a5f&color=fff'},
+      {id:2,name:'Sarah Johnson',studentId:'STU-2024-002',email:'sarah@example.com',phone:'+1 234 567 8902',room:'103',course:'Business Admin',status:'active',attendance:'present',avatar:'https://ui-avatars.com/api/?name=Sarah+Johnson&background=1e3a5f&color=fff'},
+      {id:3,name:'Michael Chen',studentId:'STU-2024-003',email:'michael@example.com',phone:'+1 234 567 8903',room:'201',course:'Engineering',status:'active',attendance:'leave',avatar:'https://ui-avatars.com/api/?name=Michael+Chen&background=1e3a5f&color=fff'},
+      {id:4,name:'Emily Davis',studentId:'STU-2024-004',email:'emily@example.com',phone:'+1 234 567 8904',room:'203',course:'Medicine',status:'pending',attendance:'present',avatar:'https://ui-avatars.com/api/?name=Emily+Davis&background=1e3a5f&color=fff'},
+      {id:5,name:'David Wilson',studentId:'STU-2024-005',email:'david@example.com',phone:'+1 234 567 8905',room:'301',course:'Law',status:'active',attendance:'absent',avatar:'https://ui-avatars.com/api/?name=David+Wilson&background=1e3a5f&color=fff'},
+      {id:6,name:'Lisa Brown',studentId:'STU-2024-006',email:'lisa@example.com',phone:'+1 234 567 8906',room:'303',course:'Design',status:'active',attendance:'present',avatar:'https://ui-avatars.com/api/?name=Lisa+Brown&background=1e3a5f&color=fff'},
+      {id:7,name:'James Miller',studentId:'STU-2024-007',email:'james@example.com',phone:'+1 234 567 8907',room:null,course:'Physics',status:'inactive',attendance:'absent',avatar:'https://ui-avatars.com/api/?name=James+Miller&background=1e3a5f&color=fff'},
+      {id:8,name:'Anna Garcia',studentId:'STU-2024-008',email:'anna@example.com',phone:'+1 234 567 8908',room:'102',course:'Psychology',status:'active',attendance:'present',avatar:'https://ui-avatars.com/api/?name=Anna+Garcia&background=1e3a5f&color=fff'}
+    ];
+
+    const allRooms = ['101','102','103','104','105','201','202','203','204','205','301','302','303','304','305'];
+    function getVacantRooms() {
+      const occupied = studentsData.filter(s => s.room).map(s => s.room);
+      return allRooms.filter(r => !occupied.includes(r));
+    }
+
+    function loadVacantRooms() {
+      const sel = document.getElementById('stu-room');
+      const vacant = getVacantRooms();
+      sel.innerHTML = '<option value="">Auto Assign</option>' + vacant.map(r => `<option value="${r}">Room ${r} (Vacant)</option>`).join('');
+    }
+
+    function renderStudents(data = studentsData) {
+      const grid = document.getElementById('student-grid');
+      grid.innerHTML = '';
+      data.forEach(student => {
+        const att = student.attendance || 'present';
+        const attClass = 'attendance-' + att;
+        const attIcon = att === 'present' ? 'fa-check' : att === 'absent' ? 'fa-times' : 'fa-plane';
+        const card = document.createElement('div');
+        card.className = 'student-card';
+        card.setAttribute('data-search-target', 'students');
+        card.innerHTML = `
+          <img src="${student.avatar}" alt="${student.name}" class="student-avatar">
+          <div class="student-name">${student.name}</div>
+          <div class="student-id">${student.studentId}</div>
+          ${student.room ? `<div class="student-room"><i class="fas fa-bed"></i> Room ${student.room}</div>` : '<div style="font-size:0.8rem;color:var(--danger);margin-bottom:8px"><i class="fas fa-exclamation-circle"></i> No Room</div>'}
+          <div class="student-contact"><i class="fas fa-envelope"></i> ${student.email}</div>
+          <div class="student-contact"><i class="fas fa-phone"></i> ${student.phone}</div>
+          <div style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px">
+            <span class="attendance-badge ${attClass}" onclick="toggleAttendance(${student.id})" title="Click to change">
+              <i class="fas ${attIcon}"></i> ${att.charAt(0).toUpperCase() + att.slice(1)}
+            </span>
+            <button class="gate-pass-btn" onclick="generateGatePass(${student.id})"><i class="fas fa-passport"></i> Gate Pass</button>
+          </div>
+          <div class="student-actions">
+            <button class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i> Edit</button>
+            <button class="btn btn-sm btn-primary"><i class="fas fa-eye"></i> View</button>
+          </div>`;
+        grid.appendChild(card);
+      });
+    }
+
+    function toggleAttendance(id) {
+      const student = studentsData.find(s => s.id === id);
+      const states = ['present','absent','leave'];
+      const idx = states.indexOf(student.attendance || 'present');
+      student.attendance = states[(idx + 1) % states.length];
+      renderStudents();
+      showToast('Updated', `${student.name} marked ${student.attendance}`, 'success');
+    }
+
+    function generateGatePass(id) {
+      const student = studentsData.find(s => s.id === id);
+      const passId = 'GP-' + Date.now().toString(36).toUpperCase();
+      const date = new Date().toLocaleDateString();
+      document.getElementById('gate-pass-body').innerHTML = `
+        <div style="border:2px dashed var(--primary);border-radius:var(--radius-lg);padding:24px;margin-bottom:16px;background:rgba(30,58,95,0.03)">
+          <div style="font-size:1.5rem;font-weight:800;color:var(--primary);margin-bottom:4px">GATE PASS</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:16px">${passId}</div>
+          <div style="font-size:1.2rem;font-weight:700;margin-bottom:4px">${student.name}</div>
+          <div style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:4px">${student.studentId}</div>
+          <div style="font-size:0.9rem;color:var(--text-secondary)">Room ${student.room || 'N/A'}</div>
+          <div style="margin-top:16px;padding-top:16px;border-top:1px dashed var(--border);font-size:0.85rem;color:var(--text-muted)">Valid for: Weekend Leave<br>Issued: ${date}</div>
+        </div>
+      `;
+      openModal('gate-pass-modal');
+    }
+
+    function filterStudents(value, type) {
+      let filtered = studentsData;
+      if (type === 'status' && value) filtered = filtered.filter(s => s.status === value);
+      if (type === 'floor' && value) filtered = filtered.filter(s => s.room && s.room.startsWith(value));
+      renderStudents(filtered);
+    }
+
+    function searchStudents(query) {
+      const q = query.toLowerCase();
+      const filtered = studentsData.filter(s => s.name.toLowerCase().includes(q) || s.studentId.toLowerCase().includes(q) || s.email.toLowerCase().includes(q) || (s.phone && s.phone.includes(q)));
+      renderStudents(filtered);
+    }
+
+    function saveStudent() {
+      showToast('Success', 'Student added successfully', 'success');
+      closeModal('add-student-modal');
+    }
+
+    // Load vacant rooms when modal opens
+    document.querySelector('[onclick="openModal(\'add-student-modal\')"]').addEventListener('click', loadVacantRooms);
+
+    renderStudents();
+  </script>
+</body>
+</html>

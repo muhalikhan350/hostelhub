@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complaints - HostelHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <style>
+    .ticket-card { background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 20px; margin-bottom: 16px; transition: all var(--transition-fast); }
+    .ticket-card:hover { box-shadow: var(--shadow-md); }
+    .ticket-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .ticket-id { font-size: 0.85rem; font-weight: 600; color: var(--primary); }
+    .ticket-priority { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+    .ticket-priority.low { background: rgba(16,185,129,0.15); color: var(--success); }
+    .ticket-priority.medium { background: rgba(59,130,246,0.15); color: var(--info); }
+    .ticket-priority.high { background: rgba(245,158,11,0.15); color: var(--warning); }
+    .ticket-priority.critical { background: rgba(239,68,68,0.15); color: var(--danger); }
+    .ticket-title { font-size: 1rem; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); }
+    .ticket-meta { display: flex; gap: 16px; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px; flex-wrap: wrap; }
+    .ticket-meta span { display: flex; align-items: center; gap: 4px; }
+    .ticket-status { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 600; }
+    .ticket-status.pending { background: rgba(245,158,11,0.15); color: var(--warning); }
+    .ticket-status.in-progress { background: rgba(59,130,246,0.15); color: var(--info); }
+    .ticket-status.resolved { background: rgba(16,185,129,0.15); color: var(--success); }
+    .ticket-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .ticket-filters { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <div class="mobile-overlay" id="mobile-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><i class="fas fa-building"></i></div>
+      <span class="sidebar-brand">HostelHub</span>
+    </div>
+    <nav class="sidebar-nav">
+      <ul>
+        <li><a href="dashboard.html"><i class="fas fa-th-large"></i><span>Dashboard</span></a></li>
+        <li><a href="rooms.html"><i class="fas fa-bed"></i><span>Rooms</span></a></li>
+        <li><a href="students.html"><i class="fas fa-users"></i><span>Students</span></a></li>
+        <li><a href="payments.html"><i class="fas fa-credit-card"></i><span>Payments</span></a></li>
+        <li><a href="complaints.html" class="active"><i class="fas fa-wrench"></i><span>Complaints</span></a></li>
+        <li><a href="notices.html"><i class="fas fa-bullhorn"></i><span>Notices</span></a></li>
+        <li><a href="settings.html"><i class="fas fa-cog"></i><span>Settings</span></a></li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="sidebar-toggle" id="sidebar-toggle"><i class="fas fa-chevron-left"></i><span>Collapse</span></button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-header">
+      <button class="header-btn" id="mobile-menu-toggle"><i class="fas fa-bars"></i></button>
+      <div class="header-search"><i class="fas fa-search"></i><input type="text" placeholder="Search complaints..." data-search="complaints"></div>
+      <div class="header-actions">
+        <button class="header-btn" id="theme-toggle"><i class="fas fa-moon"></i></button>
+        <button class="header-btn" style="position:relative"><i class="fas fa-bell"></i><span class="badge-dot" id="notification-badge"></span></button>
+        <div class="dropdown">
+          <div class="header-profile dropdown-trigger">
+            <img src="https://ui-avatars.com/api/?name=Admin+User&background=4f46e5&color=fff" alt="Profile">
+            <div class="header-profile-info">
+              <div class="header-profile-name">Admin User</div>
+              <div class="header-profile-role">Administrator</div>
+            <i class="fas fa-chevron-down" style="font-size:0.75rem;color:var(--text-muted)"></i>
+          </div>
+          <div class="dropdown-menu">
+            <a href="settings.html" class="dropdown-item"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html" class="dropdown-item"><i class="fas fa-cog"></i> Settings</a>
+            <div class="dropdown-divider"></div>
+            <a href="#" class="dropdown-item" onclick="logout();return false"><i class="fas fa-sign-out-alt"></i> Logout</a>
+          </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Complaints & Maintenance</h1>
+          <p class="page-subtitle">Track and resolve student complaints and maintenance requests.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('add-complaint-modal')"><i class="fas fa-plus"></i> New Ticket</button>
+      </div>
+      <div class="ticket-filters">
+        <select class="form-select" onchange="filterTickets(this.value,'status')" style="width:auto">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="in-progress">In Progress</option>
+          <option value="resolved">Resolved</option>
+        </select>
+        <select class="form-select" onchange="filterTickets(this.value,'priority')" style="width:auto">
+          <option value="">All Priorities</option>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+          <option value="critical">Critical</option>
+        </select>
+        <select class="form-select" onchange="filterTickets(this.value,'category')" style="width:auto">
+          <option value="">All Categories</option>
+          <option value="electrical">Electrical</option>
+          <option value="plumbing">Plumbing</option>
+          <option value="furniture">Furniture</option>
+          <option value="cleaning">Cleaning</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div id="tickets-container"></div>
+  </main>
+
+  <div class="modal-overlay" id="add-complaint-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">New Complaint</h3>
+        <button class="modal-close" onclick="closeModal('add-complaint-modal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="form-group"><label class="form-label">Title</label><input type="text" class="form-input" placeholder="Brief description of the issue"></div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="form-group"><label class="form-label">Category</label>
+              <select class="form-select">
+                <option>Electrical</option>
+                <option>Plumbing</option>
+                <option>Furniture</option>
+                <option>Cleaning</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Priority</label>
+              <select class="form-select">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Room Number</label><input type="text" class="form-input" placeholder="e.g. 101"></div>
+            <div class="form-group"><label class="form-label">Student Name</label><input type="text" class="form-input" placeholder="Student name"></div>
+          <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" placeholder="Detailed description of the issue..."></textarea></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('add-complaint-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveTicket()"><i class="fas fa-save"></i> Submit</button>
+      </div>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script>
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+      window.location.href = 'login.html';
+    }
+
+    const ticketsData = [
+      {id:'TKT-001',title:'AC not working in Room 304',category:'Electrical',priority:'high',room:'304',student:'John Doe',status:'pending',date:'Jan 10, 2024',description:'The air conditioner is not cooling properly.'},
+      {id:'TKT-002',title:'Leaky faucet in bathroom',category:'Plumbing',priority:'medium',room:'205',student:'Sarah Johnson',status:'in-progress',date:'Jan 9, 2024',description:'Faucet in the bathroom is dripping continuously.'},
+      {id:'TKT-003',title:'Broken chair in common room',category:'Furniture',priority:'low',room:'Common',student:'Michael Chen',status:'resolved',date:'Jan 8, 2024',description:'One of the chairs in the common room is broken.'},
+      {id:'TKT-004',title:'No hot water in shower',category:'Plumbing',priority:'critical',room:'412',student:'Emily Davis',status:'pending',date:'Jan 11, 2024',description:'Hot water is not available in the shower since morning.'},
+      {id:'TKT-005',title:'WiFi not connecting',category:'Electrical',priority:'medium',room:'301',student:'David Wilson',status:'in-progress',date:'Jan 10, 2024',description:'Unable to connect to WiFi from Room 301.'},
+      {id:'TKT-006',title:'Room cleaning request',category:'Cleaning',priority:'low',room:'203',student:'Lisa Brown',status:'resolved',date:'Jan 7, 2024',description:'Request for deep cleaning of the room.'}
+    ];
+
+    function renderTickets(data = ticketsData) {
+      const container = document.getElementById('tickets-container');
+      container.innerHTML = '';
+      data.forEach(ticket => {
+        const card = document.createElement('div');
+        card.className = 'ticket-card';
+        card.setAttribute('data-search-target', 'complaints');
+        card.innerHTML = `
+          <div class="ticket-header">
+            <span class="ticket-id">${ticket.id}</span>
+            <span class="ticket-priority ${ticket.priority}">${ticket.priority}</span>
+          </div>
+          <div class="ticket-title">${ticket.title}</div>
+          <div class="ticket-meta">
+            <span><i class="fas fa-bed"></i> Room ${ticket.room}</span>
+            <span><i class="fas fa-user"></i> ${ticket.student}</span>
+            <span><i class="fas fa-folder"></i> ${ticket.category}</span>
+            <span><i class="fas fa-calendar"></i> ${ticket.date}</span>
+          </div>
+          <p style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:12px">${ticket.description}</p>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span class="ticket-status ${ticket.status}"><i class="fas fa-circle" style="font-size:6px"></i> ${ticket.status.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+            <div class="ticket-actions">
+              ${ticket.status !== 'resolved' ? `<button class="btn btn-sm btn-success" onclick="updateStatus('${ticket.id}', 'resolved')"><i class="fas fa-check"></i> Resolve</button>` : ''}
+              ${ticket.status === 'pending' ? `<button class="btn btn-sm btn-primary" onclick="updateStatus('${ticket.id}', 'in-progress')"><i class="fas fa-play"></i> Start</button>` : ''}
+              <button class="btn btn-sm btn-secondary"><i class="fas fa-eye"></i> View</button>
+            </div>`;
+        container.appendChild(card);
+      });
+    }
+
+    function filterTickets(value, type) {
+      let filtered = ticketsData;
+      if (value) filtered = filtered.filter(t => t[type] === value);
+      renderTickets(filtered);
+    }
+
+    function updateStatus(id, status) {
+      const ticket = ticketsData.find(t => t.id === id);
+      if (ticket) { ticket.status = status; renderTickets(); showToast('Updated', `Ticket ${id} marked as ${status}`, 'success'); }
+    }
+
+    function saveTicket() {
+      showToast('Success', 'Complaint submitted successfully', 'success');
+      closeModal('add-complaint-modal');
+    }
+
+    renderTickets();
+  </script>
+</body>
+</html>

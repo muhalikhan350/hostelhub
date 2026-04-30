@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - HostelHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; }
+    .chart-container { position: relative; height: 300px; }
+    .recent-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .recent-item:last-child { border-bottom: none; }
+    .recent-icon { width: 36px; height: 36px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+    .recent-icon.primary { background: rgba(79,70,229,0.1); color: var(--primary); }
+    .recent-icon.success { background: rgba(16,185,129,0.1); color: var(--success); }
+    .recent-icon.warning { background: rgba(245,158,11,0.1); color: var(--warning); }
+    .recent-icon.danger { background: rgba(239,68,68,0.1); color: var(--danger); }
+    .recent-content { flex: 1; }
+    .recent-title { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+    .recent-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+    .recent-time { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
+    .room-visual { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 16px; }
+    .room-box { aspect-ratio: 1; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all var(--transition-fast); }
+    .room-box.available { background: rgba(16,185,129,0.2); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+    .room-box.occupied { background: rgba(79,70,229,0.2); color: var(--primary); border: 1px solid rgba(79,70,229,0.3); }
+    .room-box.maintenance { background: rgba(245,158,11,0.2); color: var(--warning); border: 1px solid rgba(245,158,11,0.3); }
+    .room-box:hover { transform: scale(1.1); z-index: 1; }
+    .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .quick-action { background: var(--bg-card); border-radius: var(--radius-lg); padding: 20px; text-align: center; border: 1px solid var(--border); transition: all var(--transition-fast); cursor: pointer; }
+    .quick-action:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
+    .quick-action i { font-size: 1.5rem; margin-bottom: 8px; color: var(--primary); }
+    .quick-action span { display: block; font-size: 0.85rem; font-weight: 500; color: var(--text-primary); }
+    .progress-ring { width: 120px; height: 120px; margin: 0 auto; }
+    .progress-ring-bg { fill: none; stroke: var(--bg-tertiary); stroke-width: 8; }
+    .progress-ring-fill { fill: none; stroke: var(--primary); stroke-width: 8; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 1.5s ease; }
+    @media(max-width: 992px) { .dashboard-grid { grid-template-columns: 1fr; } .quick-actions { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+  <!-- Mobile Overlay -->
+  <div class="mobile-overlay" id="mobile-overlay"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><i class="fas fa-building"></i></div>
+      <span class="sidebar-brand" id="sidebar-brand">HostelHub</span>
+    </div>
+    <nav class="sidebar-nav">
+      <ul>
+        <li><a href="dashboard.html" class="active"><i class="fas fa-th-large"></i><span>Dashboard</span></a></li>
+        <li><a href="rooms.html"><i class="fas fa-bed"></i><span>Rooms</span></a></li>
+        <li><a href="students.html"><i class="fas fa-users"></i><span>Students</span></a></li>
+        <li><a href="payments.html"><i class="fas fa-credit-card"></i><span>Payments</span></a></li>
+        <li><a href="finance.html"><i class="fas fa-dollar-sign"></i><span>Finance</span></a></li>
+        <li><a href="complaints.html"><i class="fas fa-wrench"></i><span>Complaints</span></a></li>
+        <li><a href="notices.html"><i class="fas fa-bullhorn"></i><span>Notices</span></a></li>
+        <li><a href="settings.html"><i class="fas fa-cog"></i><span>Settings</span></a></li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="sidebar-toggle" id="sidebar-toggle"><i class="fas fa-chevron-left"></i><span>Collapse</span></button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Top Header -->
+    <header class="top-header">
+      <button class="header-btn" id="mobile-menu-toggle"><i class="fas fa-bars"></i></button>
+      <div class="header-search">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Search anything..." data-search="global">
+      </div>
+      <div class="header-actions">
+        <button class="header-btn" id="theme-toggle"><i class="fas fa-moon"></i></button>
+        <button class="header-btn" style="position:relative">
+          <i class="fas fa-bell"></i>
+          <span class="badge-dot" id="notification-badge"></span>
+        </button>
+        <div class="dropdown">
+          <div class="header-profile dropdown-trigger">
+            <img src="https://ui-avatars.com/api/?name=Admin+User&background=4f46e5&color=fff" alt="Profile" id="header-profile-img">
+            <div class="header-profile-info" id="header-profile-info">
+              <div class="header-profile-name" id="header-profile-name">Admin User</div>
+              <div class="header-profile-role" id="header-profile-role">Administrator</div>
+            </div>
+            <i class="fas fa-chevron-down" style="font-size:0.75rem;color:var(--text-muted)"></i>
+          </div>
+          <div class="dropdown-menu">
+            <a href="settings.html" class="dropdown-item"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html" class="dropdown-item"><i class="fas fa-cog"></i> Settings</a>
+            <div class="dropdown-divider"></div>
+            <a href="#" class="dropdown-item" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <div class="page-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Dashboard</h1>
+          <p class="page-subtitle">Welcome back! Here's what's happening in your hostel.</p>
+        </div>
+        <div style="display:flex;gap:12px">
+          <button class="btn btn-secondary" onclick="exportDashboard()"><i class="fas fa-download"></i> Export</button>
+          <button class="btn btn-primary" onclick="openModal('add-student-modal')"><i class="fas fa-plus"></i> Add Student</button>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <div class="quick-action" onclick="location.href='rooms.html'">
+          <i class="fas fa-bed"></i>
+          <span>Manage Rooms</span>
+        </div>
+        <div class="quick-action" onclick="location.href='students.html'">
+          <i class="fas fa-user-plus"></i>
+          <span>Add Student</span>
+        </div>
+        <div class="quick-action" onclick="location.href='payments.html'">
+          <i class="fas fa-file-invoice"></i>
+          <span>Generate Bill</span>
+        </div>
+        <div class="quick-action" onclick="location.href='complaints.html'">
+          <i class="fas fa-ticket-alt"></i>
+          <span>New Ticket</span>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat-card" style="border-left:4px solid var(--primary)">
+          <div class="stat-header">
+            <div class="stat-icon primary" style="background:rgba(30,58,95,0.15);color:var(--primary)"><i class="fas fa-bed"></i></div>
+            <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 5%</div>
+          </div>
+          <div class="stat-value" id="stat-occupancy">87%</div>
+          <div class="stat-label">Occupancy Rate</div>
+          <div style="margin-top:10px"><div class="progress-bar"><div class="progress-fill primary" style="width:87%"></div></div></div>
+        </div>
+        <div class="stat-card" style="border-left:4px solid var(--success)">
+          <div class="stat-header">
+            <div class="stat-icon success"><i class="fas fa-hand-holding-usd"></i></div>
+            <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 8%</div>
+          </div>
+          <div class="stat-value" id="stat-revenue">$48.2K</div>
+          <div class="stat-label">Total Collection This Month</div>
+        </div>
+        <div class="stat-card" style="border-left:4px solid var(--danger)">
+          <div class="stat-header">
+            <div class="stat-icon danger"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="stat-trend down"><i class="fas fa-arrow-down"></i> 3</div>
+          </div>
+          <div class="stat-value" id="stat-complaints">12</div>
+          <div class="stat-label">Pending Complaints</div>
+        </div>
+      </div>
+
+      <!-- Dashboard Grid -->
+      <div class="dashboard-grid">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Revenue Overview</h3>
+            <select class="form-select" style="width:auto;font-size:0.85rem;padding:6px 12px">
+              <option>Last 6 Months</option>
+              <option>Last Year</option>
+              <option>This Year</option>
+            </select>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="revenueChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Occupancy Rate</h3>
+          </div>
+          <div class="card-body">
+            <div class="chart-container" style="height:200px">
+              <canvas id="occupancyChart"></canvas>
+            </div>
+            <div style="text-align:center;margin-top:16px">
+              <div style="font-size:2rem;font-weight:800;color:var(--primary)">87%</div>
+              <div style="font-size:0.85rem;color:var(--text-secondary)">Current Occupancy</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Recent Activity</h3>
+            <a href="#" style="font-size:0.85rem;color:var(--primary)">View All</a>
+          </div>
+          <div class="card-body" style="padding-top:8px;padding-bottom:8px">
+            <div class="recent-item">
+              <div class="recent-icon success"><i class="fas fa-check"></i></div>
+              <div class="recent-content">
+                <div class="recent-title">Payment received from John Doe</div>
+                <div class="recent-meta">Room 304 - $450</div>
+              </div>
+              <div class="recent-time">2 min ago</div>
+            </div>
+            <div class="recent-item">
+              <div class="recent-icon primary"><i class="fas fa-user"></i></div>
+              <div class="recent-content">
+                <div class="recent-title">New student registered</div>
+                <div class="recent-meta">Sarah Johnson - Room 205</div>
+              </div>
+              <div class="recent-time">15 min ago</div>
+            </div>
+            <div class="recent-item">
+              <div class="recent-icon warning"><i class="fas fa-wrench"></i></div>
+              <div class="recent-content">
+                <div class="recent-title">Maintenance request submitted</div>
+                <div class="recent-meta">Room 412 - AC Repair</div>
+              </div>
+              <div class="recent-time">1 hour ago</div>
+            </div>
+            <div class="recent-item">
+              <div class="recent-icon danger"><i class="fas fa-times"></i></div>
+              <div class="recent-content">
+                <div class="recent-title">Room checkout completed</div>
+                <div class="recent-meta">Room 118 - Mike Chen</div>
+              </div>
+              <div class="recent-time">3 hours ago</div>
+            </div>
+            <div class="recent-item">
+              <div class="recent-icon primary"><i class="fas fa-bullhorn"></i></div>
+              <div class="recent-content">
+                <div class="recent-title">Notice posted</div>
+                <div class="recent-meta">Water supply maintenance - Jan 15</div>
+              </div>
+              <div class="recent-time">5 hours ago</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Room Overview</h3>
+            <div style="display:flex;gap:16px;font-size:0.8rem">
+              <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--success)"></span> Available</span>
+              <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--primary)"></span> Occupied</span>
+              <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--warning)"></span> Maintenance</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="room-visual" id="room-visual"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Add Student Modal -->
+  <div class="modal-overlay" id="add-student-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Add New Student</h3>
+        <button class="modal-close" onclick="closeModal('add-student-modal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="add-student-form">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" class="form-input" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Student ID</label>
+              <input type="text" class="form-input" placeholder="STU-2024-001" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-input" placeholder="john@example.com" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone</label>
+              <input type="tel" class="form-input" placeholder="+1 234 567 890" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Room Assignment</label>
+              <select class="form-select" required>
+                <option value="">Select Room</option>
+                <option value="101">Room 101</option>
+                <option value="102">Room 102</option>
+                <option value="103">Room 103</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Course/Program</label>
+              <input type="text" class="form-input" placeholder="Computer Science">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('add-student-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveStudent()"><i class="fas fa-save"></i> Save Student</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script>
+    // Check auth
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+      window.location.href = 'login.html';
+    }
+
+    // Generate room visual
+    const roomVisual = document.getElementById('room-visual');
+    const roomStatuses = ['available','available','occupied','occupied','available','occupied','occupied','maintenance','available','occupied','occupied','available','available','occupied','occupied','available','occupied','available','occupied','maintenance','available','occupied','occupied','available','available'];
+    roomStatuses.forEach((status, i) => {
+      const div = document.createElement('div');
+      div.className = `room-box ${status}`;
+      div.textContent = i + 101;
+      div.title = `Room ${i + 101} - ${status}`;
+      roomVisual.appendChild(div);
+    });
+
+    // Animate stats on load
+    window.addEventListener('load', () => {
+      animateValue(document.getElementById('stat-students'), 0, 1248, 1500);
+      animateValue(document.getElementById('stat-rooms'), 0, 486, 1500);
+    });
+
+    function exportDashboard() {
+      showToast('Export Started', 'Dashboard report is being generated...', 'info');
+      setTimeout(() => showToast('Export Complete', 'Report downloaded successfully', 'success'), 1500);
+    }
+
+    function saveStudent() {
+      showToast('Success', 'Student added successfully', 'success');
+      closeModal('add-student-modal');
+    }
+  </script>
+</body>
+</html>
+
